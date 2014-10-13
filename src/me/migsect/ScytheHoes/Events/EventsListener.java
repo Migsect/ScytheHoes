@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import me.migsect.ScytheHoes.ScytheHoes;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -23,6 +25,13 @@ public class EventsListener implements Listener
 {
 	List<Event> no_do_break = new ArrayList<Event>();
 	List<Event> no_do_place = new ArrayList<Event>();
+	
+	ScytheHoes plugin;
+	
+	public EventsListener(ScytheHoes plugin)
+	{
+		this.plugin = plugin;
+	}
 	
 	@EventHandler
 	public void onFarmBreak(BlockBreakEvent event)
@@ -49,16 +58,22 @@ public class EventsListener implements Listener
 			crop_type = Material.POTATO;
 		}
 		else return; //  We only will act on blocks that are crops.
-		// player.sendMessage("Crop Selected: " + crop_type.toString());
 		
 		int span = 0;
-		// player.sendMessage("Tool: " + in_hand.getType().toString());
-		if(in_hand.getType().equals(Material.IRON_HOE)) span = 1; // Total of 3x3 Area - 9 blocks | 251 possible breaks.
-		else if(in_hand.getType().equals(Material.GOLD_HOE)) span = 2; // Total of 5x5 Area - 25 blocks - No extra durability on breaks | 825 total possible breaks.
-		else if(in_hand.getType().equals(Material.DIAMOND_HOE)) span = 4; // Total of 9x9 area - 81 blocks | 1562 total possible breaks.
-		else return; // Because we don't need to do anything else.
-		// player.sendMessage("Span : " + span);
-
+		// Scythes
+		if(in_hand.getType().equals(Material.WOOD_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_HOE.toString());
+		else if(in_hand.getType().equals(Material.STONE_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.STONE_HOE.toString());
+		else if(in_hand.getType().equals(Material.IRON_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.IRON_HOE.toString());
+		else if(in_hand.getType().equals(Material.GOLD_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_HOE.toString());
+		else if(in_hand.getType().equals(Material.DIAMOND_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_HOE.toString());
+		// Machetes
+		else if(in_hand.getType().equals(Material.WOOD_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_SWORD.toString());
+		else if(in_hand.getType().equals(Material.STONE_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.STONE_SWORD.toString());
+		else if(in_hand.getType().equals(Material.IRON_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.IRON_SWORD.toString());
+		else if(in_hand.getType().equals(Material.GOLD_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_SWORD.toString());
+		else if(in_hand.getType().equals(Material.DIAMOND_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_SWORD.toString());
+		else if(span == 0) return; // Because we don't need to do anything else.
+		
 		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability())) return;
 		
 		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
@@ -68,12 +83,21 @@ public class EventsListener implements Listener
 		{
 			unbreaking = 1 + in_hand.getEnchantmentLevel(Enchantment.DURABILITY);
 		}
-		// If a random number between 1 and 100 is less than 100/unbreaking, then do durability.
-		if((rand.nextInt(100) + 1) < (100/unbreaking) && !player.getGameMode().equals(GameMode.CREATIVE))
+		double dur_coeff = 0;
+		if(in_hand.getType().equals(Material.WOOD_HOE) || in_hand.getType().equals(Material.WOOD_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.WOOD");
+		else if(in_hand.getType().equals(Material.STONE_HOE) || in_hand.getType().equals(Material.STONE_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.STONE");
+		else if(in_hand.getType().equals(Material.IRON_HOE) || in_hand.getType().equals(Material.IRON_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.IRON");
+		else if(in_hand.getType().equals(Material.GOLD_HOE) || in_hand.getType().equals(Material.GOLD_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.GOLD");
+		else if(in_hand.getType().equals(Material.DIAMOND_HOE) || in_hand.getType().equals(Material.DIAMOND_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.D");
+		
+		int dur_chance = (int) ((100/unbreaking) * dur_coeff);
+		// If a random number between 1 and 100 is less than dur_chance, then do durability.
+		if((rand.nextInt(100) + 1) < dur_chance&& !player.getGameMode().equals(GameMode.CREATIVE))
 		{
 			in_hand.setDurability((short) (in_hand.getDurability() + 1)); //  durability setting.
 			player.updateInventory();
 		}
+		
 		for(int x = -span; x <= span; x++)
 		{
 			for(int z = -span; z <= span; z++)

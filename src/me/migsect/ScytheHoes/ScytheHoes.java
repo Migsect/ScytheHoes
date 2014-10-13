@@ -22,9 +22,13 @@ public class ScytheHoes extends JavaPlugin
 		PluginDescriptionFile pdf = this.getDescription();
 		this.logger.info(pdf.getName() + " Version " + pdf.getVersion() + " has been enabled.");
 		
+		// Config Handling
+		getConfig().options().copyDefaults(true);
+		saveConfig();
+		
 		// Listeners
 		PluginManager pm = Bukkit.getPluginManager();
-		pm.registerEvents(new EventsListener(), this);
+		pm.registerEvents(new EventsListener(this), this);
 	}
 	@Override
 	public void onDisable()

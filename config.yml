@@ -1,0 +1,47 @@
+Crop-Reach:
+    WOOD_HOE: 0
+    STONE_HOE: 0
+    IRON_HOE: 1  
+    GOLD_HOE: 2
+    DIAMOND_HOE: 4
+    WOOD_SWORD: 0
+    STONE_SWORD: 0
+    IRON_SWORD: 1  
+    GOLD_SWORD: 2
+    DIAMOND_SWORD: 4
+Leaves-Reach:
+    WOOD_HOE: 0
+    STONE_HOE: 0
+    IRON_HOE: 1  
+    GOLD_HOE: 2
+    DIAMOND_HOE: 4
+    WOOD_SWORD: 0
+    STONE_SWORD: 0
+    IRON_SWORD: 1  
+    GOLD_SWORD: 2
+    DIAMOND_SWORD: 4
+Plants-Reach:
+    WOOD_HOE: 0
+    STONE_HOE: 0
+    IRON_HOE: 0  
+    GOLD_HOE: 0
+    DIAMOND_HOE: 0
+    WOOD_SWORD: 0
+    STONE_SWORD: 0
+    IRON_SWORD: 0  
+    GOLD_SWORD: 0
+    DIAMOND_SWORD: 0
+Extra-Durability-Coeff:
+    WOOD: 1.0
+    STONE: 1.0
+    IRON: 1.0
+    GOLD: 0.0
+    DIAMOND: 1.0
+Seed-Spread:
+    CARROTS: 2
+    POTATOS: 2
+    WHEAT_SEEDS: 5
+Seed-Spread-Loss:
+    CARROTS: 0.0
+    POTATOS: 0.0
+    WHEAT_SEEDS: 0.1
