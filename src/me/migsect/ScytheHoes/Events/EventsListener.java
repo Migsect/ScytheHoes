@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import me.migsect.ScytheHoes.Helper;
 import me.migsect.ScytheHoes.ScytheHoes;
 
 import org.bukkit.Bukkit;
@@ -33,6 +34,66 @@ public class EventsListener implements Listener
 		this.plugin = plugin;
 	}
 	
+	private int getSpanLeaves(Material mat)
+	{
+		// Scythes
+		if(mat.equals(Material.WOOD_HOE)) 		return plugin.getConfig().getInt("Leaves-Reach." + Material.WOOD_HOE.toString());
+		if(mat.equals(Material.STONE_HOE)) 		return plugin.getConfig().getInt("Leaves-Reach." + Material.STONE_HOE.toString());
+		if(mat.equals(Material.IRON_HOE)) 		return plugin.getConfig().getInt("Leaves-Reach." + Material.IRON_HOE.toString());
+		if(mat.equals(Material.GOLD_HOE)) 		return plugin.getConfig().getInt("Leaves-Reach." + Material.GOLD_HOE.toString());
+		if(mat.equals(Material.DIAMOND_HOE))	return plugin.getConfig().getInt("Leaves-Reach." + Material.DIAMOND_HOE.toString());
+		// Machetes
+		if(mat.equals(Material.WOOD_SWORD)) 	return plugin.getConfig().getInt("Leaves-Reach." + Material.WOOD_SWORD.toString());
+		if(mat.equals(Material.STONE_SWORD)) 	return plugin.getConfig().getInt("Leaves-Reach." + Material.STONE_SWORD.toString());
+	  if(mat.equals(Material.IRON_SWORD)) 	return plugin.getConfig().getInt("Leaves-Reach." + Material.IRON_SWORD.toString());
+		if(mat.equals(Material.GOLD_SWORD)) 	return plugin.getConfig().getInt("Leaves-Reach." + Material.GOLD_SWORD.toString());
+		if(mat.equals(Material.DIAMOND_SWORD))return plugin.getConfig().getInt("Leaves-Reach." + Material.DIAMOND_SWORD.toString());
+		return 0;
+	}
+	private int getSpanCrops(Material mat)
+	{
+		// Scythes
+		if(mat.equals(Material.WOOD_HOE)) 		return plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_HOE.toString());
+		if(mat.equals(Material.STONE_HOE)) 		return plugin.getConfig().getInt("Crop-Reach." + Material.STONE_HOE.toString());
+		if(mat.equals(Material.IRON_HOE)) 		return plugin.getConfig().getInt("Crop-Reach." + Material.IRON_HOE.toString());
+		if(mat.equals(Material.GOLD_HOE)) 		return plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_HOE.toString());
+		if(mat.equals(Material.DIAMOND_HOE))	return plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_HOE.toString());
+		// Machetes
+		if(mat.equals(Material.WOOD_SWORD)) 	return plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_SWORD.toString());
+		if(mat.equals(Material.STONE_SWORD)) 	return plugin.getConfig().getInt("Crop-Reach." + Material.STONE_SWORD.toString());
+	  if(mat.equals(Material.IRON_SWORD)) 	return plugin.getConfig().getInt("Crop-Reach." + Material.IRON_SWORD.toString());
+		if(mat.equals(Material.GOLD_SWORD)) 	return plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_SWORD.toString());
+		if(mat.equals(Material.DIAMOND_SWORD))return plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_SWORD.toString());
+		return 0;
+	}
+	private int getSpanPlants(Material mat)
+	{
+		// Scythes
+		if(mat.equals(Material.WOOD_HOE)) 		return plugin.getConfig().getInt("Plants-Reach." + Material.WOOD_HOE.toString());
+		if(mat.equals(Material.STONE_HOE)) 		return plugin.getConfig().getInt("Plants-Reach." + Material.STONE_HOE.toString());
+		if(mat.equals(Material.IRON_HOE)) 		return plugin.getConfig().getInt("Plants-Reach." + Material.IRON_HOE.toString());
+		if(mat.equals(Material.GOLD_HOE)) 		return plugin.getConfig().getInt("Plants-Reach." + Material.GOLD_HOE.toString());
+		if(mat.equals(Material.DIAMOND_HOE))	return plugin.getConfig().getInt("Plants-Reach." + Material.DIAMOND_HOE.toString());
+		// Machetes
+		if(mat.equals(Material.WOOD_SWORD)) 	return plugin.getConfig().getInt("Plants-Reach." + Material.WOOD_SWORD.toString());
+		if(mat.equals(Material.STONE_SWORD)) 	return plugin.getConfig().getInt("Plants-Reach." + Material.STONE_SWORD.toString());
+	  if(mat.equals(Material.IRON_SWORD)) 	return plugin.getConfig().getInt("Plants-Reach." + Material.IRON_SWORD.toString());
+		if(mat.equals(Material.GOLD_SWORD)) 	return plugin.getConfig().getInt("Plants-Reach." + Material.GOLD_SWORD.toString());
+		if(mat.equals(Material.DIAMOND_SWORD))return plugin.getConfig().getInt("Plants-Reach." + Material.DIAMOND_SWORD.toString());
+		return 0;
+	}
+	private double getDurCoeff(Material mat)
+	{
+		Material raw_mat = Helper.getRawMaterial(mat);
+		if(raw_mat.equals(null)) 									return 0.0;
+		if(raw_mat.equals(Material.WOOD)) 				return plugin.getConfig().getDouble("Extra-Durability-Coeff.WOOD");
+		if(raw_mat.equals(Material.COBBLESTONE)) 	return plugin.getConfig().getDouble("Extra-Durability-Coeff.STONE");
+		if(raw_mat.equals(Material.IRON_INGOT)) 	return plugin.getConfig().getDouble("Extra-Durability-Coeff.IRON");
+		if(raw_mat.equals(Material.GOLD_INGOT)) 	return plugin.getConfig().getDouble("Extra-Durability-Coeff.GOLD");
+		if(raw_mat.equals(Material.DIAMOND)) 			return plugin.getConfig().getDouble("Extra-Durability-Coeff.D");
+		return 0.0;
+	}
+	
 	@EventHandler
 	public void onFarmBreak(BlockBreakEvent event)
 	{
@@ -59,20 +120,8 @@ public class EventsListener implements Listener
 		}
 		else return; //  We only will act on blocks that are crops.
 		
-		int span = 0;
-		// Scythes
-		if(in_hand.getType().equals(Material.WOOD_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_HOE.toString());
-		else if(in_hand.getType().equals(Material.STONE_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.STONE_HOE.toString());
-		else if(in_hand.getType().equals(Material.IRON_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.IRON_HOE.toString());
-		else if(in_hand.getType().equals(Material.GOLD_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_HOE.toString());
-		else if(in_hand.getType().equals(Material.DIAMOND_HOE)) span = plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_HOE.toString());
-		// Machetes
-		else if(in_hand.getType().equals(Material.WOOD_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.WOOD_SWORD.toString());
-		else if(in_hand.getType().equals(Material.STONE_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.STONE_SWORD.toString());
-		else if(in_hand.getType().equals(Material.IRON_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.IRON_SWORD.toString());
-		else if(in_hand.getType().equals(Material.GOLD_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.GOLD_SWORD.toString());
-		else if(in_hand.getType().equals(Material.DIAMOND_SWORD)) span = plugin.getConfig().getInt("Crop-Reach." + Material.DIAMOND_SWORD.toString());
-		else if(span == 0) return; // Because we don't need to do anything else.
+		int span = this.getSpanCrops(in_hand.getType());
+		if(span == 0) return;
 		
 		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability())) return;
 		
@@ -83,12 +132,7 @@ public class EventsListener implements Listener
 		{
 			unbreaking = 1 + in_hand.getEnchantmentLevel(Enchantment.DURABILITY);
 		}
-		double dur_coeff = 0;
-		if(in_hand.getType().equals(Material.WOOD_HOE) || in_hand.getType().equals(Material.WOOD_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.WOOD");
-		else if(in_hand.getType().equals(Material.STONE_HOE) || in_hand.getType().equals(Material.STONE_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.STONE");
-		else if(in_hand.getType().equals(Material.IRON_HOE) || in_hand.getType().equals(Material.IRON_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.IRON");
-		else if(in_hand.getType().equals(Material.GOLD_HOE) || in_hand.getType().equals(Material.GOLD_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.GOLD");
-		else if(in_hand.getType().equals(Material.DIAMOND_HOE) || in_hand.getType().equals(Material.DIAMOND_SWORD)) dur_coeff = plugin.getConfig().getDouble("Extra-Durability-Coeff.D");
+		double dur_coeff = this.getDurCoeff(in_hand.getType());
 		
 		int dur_chance = (int) ((100/unbreaking) * dur_coeff);
 		// If a random number between 1 and 100 is less than dur_chance, then do durability.
@@ -180,17 +224,11 @@ public class EventsListener implements Listener
 			{
 				for(int z = -span; z <= span; z++)
 				{
-					// player.sendMessage(x + " , " + event.getBlock().getY() + " , " + z);
 					BlockState target = event.getBlock().getRelative(x, y, z).getState();
-					// player.sendMessage(target.getLocation().getBlockX() + " , " + target.getLocation().getBlockY() + " , "+ target.getLocation().getBlockZ());
-					// player.sendMessage("TarBlockTyp: " + target.getType());
-					// player.sendMessage("TarBlockDur: " + target.getData().toItemStack().getDurability());
-					// player.sendMessage(".getDurability(): " + in_hand.getDurability()); 
 					if(target.getType().equals(Material.LEAVES) || target.getType().equals(Material.LEAVES_2)) // only breaking the blocks of sufficient level.
 					{
 						// Breaking the block.
 						// I don't know if durability starts at 0 or max_durability.  if it is 0, then we'll chance this.
-						// player.sendMessage(".getDurability(): " + in_hand.getDurability()); 
 						if(in_hand.getDurability() < in_hand.getType().getMaxDurability()) // Checking for ample durability.  This deals with durability.
 						{
 							if(x == 0 && y == 0 && z == 0) continue; // block 0,0 is already broken.
@@ -227,7 +265,6 @@ public class EventsListener implements Listener
 		Player player = event.getPlayer();
 		ItemStack item = event.getItemInHand(); // grabs the itemstack that the player had.
 		Material place_mat = null;
-		// player.sendMessage(item.getType().toString());
 		
 		// check to see if the item we are placing if a possible crop.  We then set the material we will place to the block variant.
 		if(item.getType().equals(Material.SEEDS)) place_mat = Material.CROPS;
@@ -237,18 +274,14 @@ public class EventsListener implements Listener
 		
 		ItemStack place_item = new ItemStack(place_mat);
 		
-		// player.sendMessage(place_mat.toString());
-		
 		int distance = 4;
 		Block center = event.getBlock().getRelative(BlockFace.DOWN);  // This should be farmland
 		List<Block> soil_blocks = new ArrayList<Block>(); // 
 		List<Block> holder_blocks = new ArrayList<Block>();
 		List<Block> new_blocks = new ArrayList<Block>(); // these are the check blocks that are being added from the proximity of the holder-Blocks.
 		holder_blocks.add(center);
-		// Bukkit.getLogger().info(">>> >>> Starting Gathering");
 		for(int i = 0; i < distance; i++)
 		{
-			// player.sendMessage("  Round: " + i);
 			for(int j = holder_blocks.size() - 1; j >= 0; j--)
 			{
 				new_blocks.add(holder_blocks.get(j).getRelative(BlockFace.NORTH));
@@ -265,7 +298,6 @@ public class EventsListener implements Listener
 			holder_blocks.addAll(new_blocks);
 			new_blocks.clear();
 		}
-		// Bukkit.getLogger().info(">>> >>> Gathering is Complete");
 		item.setAmount(item.getAmount() - 1);
 		for(int i = 1; i < soil_blocks.size(); i++)
 		{
@@ -303,38 +335,5 @@ public class EventsListener implements Listener
 			else player.getInventory().setItem(inv_slot, dec_item);
 			player.updateInventory();
 		}
-		/*
-		for(int x = -distance; x <= distance; x++)
-		{
-			for(int z = -distance; z <= distance; z++)
-			{
-				Block target = center.getRelative(x, 0, z);
-				if(!target.getType().equals(Material.SOIL)) continue;
-				
-				// Inventory management
-				int inv_slot = player.getInventory().first(item.getType());
-				if(inv_slot < 0) return; // -1 signifies that there isn't an item, so we end the process.
-				ItemStack dec_item = player.getInventory().getItem(inv_slot); // grab the item stack to decrement.
-				
-				
-				BlockState replaced = target.getRelative(BlockFace.UP).getState();
-				Block against = target;
-				ItemStack item_in_hand = dec_item;
-				Block placed = target.getRelative(BlockFace.UP);
-				placed.setType(place_mat);
-				BlockPlaceEvent new_event = new BlockPlaceEvent(placed, replaced, against, item_in_hand, player, event.canBuild());
-				no_do_place.add(new_event);
-				Bukkit.getPluginManager().callEvent(new_event);
-				no_do_place.remove(new_event);
-				if(new_event.isCancelled()) continue;
-				
-				// reducing the item
-				dec_item.setAmount(dec_item.getAmount() - 1); // Hope this works and we aren't making a copy of the stack.
-				if(dec_item.getAmount() == 0) player.getInventory().clear(inv_slot);
-				else player.getInventory().setItem(inv_slot, dec_item);
-				player.updateInventory();
-			}
-		}
-		*/
 	}
 }
