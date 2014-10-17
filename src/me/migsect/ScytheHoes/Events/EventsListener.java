@@ -104,26 +104,28 @@ public class EventsListener implements Listener
 		
 		BlockState broken_block = event.getBlock().getState();
 		Material crop_type = null;
-		// player.sendMessage("Block Data: " + broken_block.getData().toItemStack().getDurability() + "");
-		// player.sendMessage("Detected Tool: " + broken_block.getType().toString());
-		if(broken_block.getType().equals(Material.CROPS) && broken_block.getData().toItemStack().getDurability() == 7)
-		{
-			crop_type = Material.CROPS;
+		List<Material> crop_types = Helper.stringToMaterial(plugin.getConfig().getStringList("Crop-Types"));
+		for(int i = 0 ; i < crop_types.size(); i++)
+		{	
+			Material check_mat = crop_types.get(i);
+			short mature_data =  Helper.getMaturityAge(check_mat);
+			if(broken_block.getType().equals(check_mat) && broken_block.getData().toItemStack().getDurability() == mature_data)
+			{
+				crop_type = check_mat;
+				break;
+			}
 		}
-		else if(broken_block.getType().equals(Material.CARROT) && broken_block.getData().toItemStack().getDurability() == 7)
-		{
-			crop_type = Material.CARROT;
-		}
-		else if(broken_block.getType().equals(Material.POTATO) && broken_block.getData().toItemStack().getDurability() == 7)
-		{
-			crop_type = Material.POTATO;
-		}
-		else return; //  We only will act on blocks that are crops.
 		
+		// getting the range of the scythe being used.
 		int span = this.getSpanCrops(in_hand.getType());
 		if(span == 0) return;
 		
-		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability())) return;
+		// break and stop of the tool is tool damaged.
+		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability()))
+		{
+			player.setItemInHand(null); // will break the tool;
+			return;
+		}
 		
 		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
 		Random rand = new Random(); //  for durability.
@@ -146,11 +148,7 @@ public class EventsListener implements Listener
 		{
 			for(int z = -span; z <= span; z++)
 			{
-				// player.sendMessage(x + " , " + event.getBlock().getY() + " , " + z);
 				BlockState target = event.getBlock().getRelative(x, 0, z).getState();
-				// player.sendMessage(target.getLocation().getBlockX() + " , " + target.getLocation().getBlockY() + " , "+ target.getLocation().getBlockZ());
-				// player.sendMessage("TarBlockTyp: " + target.getType());
-				// player.sendMessage("TarBlockDur: " + target.getData().toItemStack().getDurability());
 				if(target.getType().equals(crop_type) && target.getData().toItemStack().getDurability() == 7) // only breaking the blocks of sufficient level.
 				{
 					// Breaking the block.
