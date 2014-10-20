@@ -207,13 +207,11 @@ public class Helper
 	}
 	
 	// simulateBlockBreak will attempt to simulate the block break (of course) as if it was broken by the tool given.
-	public static boolean simulateBlockBreak(Block block, Player player, List<Event> event_tracker, double damage_prob)
+	//   it will NOT simulate tool damage, this is to be handled by simulateItemDamage.
+	public static boolean simulateBlockBreak(Block block, Player player, List<Event> event_tracker)
 	{
 		ItemStack tool = player.getItemInHand();
 		BlockBreakEvent new_event = new BlockBreakEvent(block, player);
-
-		if(tool.getType().equals(Material.AIR)) return false;
-		if(damage_prob >= 0) simulateItemDamage(player, tool, damage_prob);
 		
 		event_tracker.add(new_event); // making sure this doesn't run a second time.
 		Bukkit.getServer().getPluginManager().callEvent(new_event);
@@ -233,23 +231,25 @@ public class Helper
 		
 		if(new_event.isCancelled()) return false; // jump to test the new block.
 		block.breakNaturally(tool);
-		simulateItemDamage(player, tool, 1);
 		return true;
 	}
 	
 	// sumulateDamage will attempt to sumulate the tool getting damaged.  It will break the tool if the tool has 0 durability and will then return false;
 	//   probability is multiplicative with unbreaking.
 	//   ONLY SIMULATES DAMAGE FOR TOOLS NOT FOR ARMOR.
+	// returns true if the item was broken.
 	public static boolean simulateItemDamage(Player player, ItemStack item, double probability, boolean ignore_ench)
 	{
 		double break_prob = 1;
 		if(item.getItemMeta().hasEnchant(Enchantment.DURABILITY) && !ignore_ench) break_prob = 1 / (1 + item.getItemMeta().getEnchantLevel(Enchantment.DURABILITY));
 		break_prob *= probability;
-		if(probRoll(break_prob))
+		if(probRoll(break_prob)) // Now we actually test to see if we should damage.
 		{
-			if(!testBreak(player, item)) item.setDurability((short) (item.getDurability() - 1));;
+			item.setDurability((short) (item.getDurability() - 1));
+			player.updateInventory();
+			if(breakCheck(player, item)) return true;
 		}
-		return true;
+		return false;
 	}
 	public static boolean simulateItemDamage(Player player, ItemStack item, double probability)
 	{
@@ -259,16 +259,19 @@ public class Helper
 	{
 		return simulateItemDamage(player, item, 1);
 	}
-	// will break the tool if it is at durability 0;
-	//   returns true if the tool is broken.
-	private static boolean testBreak(Player player, ItemStack item)
+	// will break the tool if it is at durability less than -1.  
+	//   returns true if the tool was broken.
+	private static boolean breakCheck(Player player, ItemStack item)
 	{
+		// check to see if the durability is lower than neccessary.
+		//  if
 		if(item.getDurability() <= item.getType().getMaxDurability()) return false;
 		item.setAmount(0);
 		PlayerItemBreakEvent event = new PlayerItemBreakEvent(player, item);
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		item.setDurability((short) 0);
 		item.setType(Material.AIR);
+		player.updateInventory();
 		return true;
 	}
 	

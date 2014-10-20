@@ -138,13 +138,13 @@ public class EventsListener implements Listener
 				{
 					if(x == 0 && z == 0) continue; // block 0,0 is already broken.
 					block_breaks.add(target);
-					Helper.simulateBlockBreak(target.getBlock(), player, no_do_break, dur_coeff); // we're going to need to do the seed thing here as well...
 				}
 			}
 		}
 		for(int i = 0; i < block_breaks.size(); i++)
 		{
-			Helper.simulateBlockBreak(block_breaks.get(i).getBlock(), player, no_do_break, dur_coeff);
+			block_breaks.get(i).getBlock().breakNaturally();
+			if(!Helper.simulateItemDamage(player, player.getItemInHand(), dur_coeff)) break;
 		}
 		// End block looping.
 	}
@@ -158,32 +158,25 @@ public class EventsListener implements Listener
 		ItemStack in_hand = player.getItemInHand();
 		
 		BlockState broken_block = event.getBlock().getState();
-		// We only want to break leaves.
-		if(!(broken_block.getType().equals(Material.LEAVES) || broken_block.getType().equals(Material.LEAVES_2))) return; 
-		
-		int span = 0;
-		// player.sendMessage("Tool: " + in_hand.getType().toString());
-		if(in_hand.getType().equals(Material.IRON_HOE)) span = 1; // Total of 3x3 Area - 9 blocks | 251 possible breaks.
-		else if(in_hand.getType().equals(Material.GOLD_HOE)) span = 2; // Total of 5x5 Area - 25 blocks - No extra durability on breaks | 825 total possible breaks.
-		else if(in_hand.getType().equals(Material.DIAMOND_HOE)) span = 4; // Total of 9x9 area - 81 blocks | 1562 total possible breaks.
-		else return; // Because we don't need to do anything else.
-		// player.sendMessage("Span : " + span);
-		
-		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability())) return;
-		
-		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
-		Random rand = new Random(); //  for durability.
-		int unbreaking = 1;
-		if(in_hand.getItemMeta().hasEnchant(Enchantment.DURABILITY))
-		{
-			unbreaking = 1 + in_hand.getEnchantmentLevel(Enchantment.DURABILITY);
+		Material leaf_type = null;
+		List<Material> leaf_types = Helper.stringToMaterial(plugin.getConfig().getStringList("Leaves-Types"));
+		for(int i = 0 ; i < leaf_types.size(); i++)
+		{	
+			Material check_mat = leaf_types.get(i);
+			if(broken_block.getType().equals(check_mat))
+			{
+				leaf_type = check_mat;
+				break;
+			}
 		}
-		if((rand.nextInt(100) + 1) < (100/unbreaking) && !player.getGameMode().equals(GameMode.CREATIVE))
-		{
-			in_hand.setDurability((short) (in_hand.getDurability() + 1)); //  durability setting.
-			player.updateInventory();
-		}
+		// getting the range of the scythe being used.
+		int span = this.getSpanLeaves(in_hand.getType());
+		if(span == 0) return;
+			
+		double dur_coeff = this.getDurCoeff(Helper.getRawMaterial(player.getItemInHand().getType()));
 		
+		// Beging block looping
+		List<BlockState> block_breaks = new ArrayList<BlockState>();
 		for(int x = -span; x <= span; x++)
 		{
 			for(int y = -span; y <= span; y++)
@@ -191,35 +184,19 @@ public class EventsListener implements Listener
 				for(int z = -span; z <= span; z++)
 				{
 					BlockState target = event.getBlock().getRelative(x, y, z).getState();
-					if(target.getType().equals(Material.LEAVES) || target.getType().equals(Material.LEAVES_2)) // only breaking the blocks of sufficient level.
+					if(leaf_types.contains(target.getType())) // only breaking the blocks of sufficient level.
 					{
-						// Breaking the block.
-						// I don't know if durability starts at 0 or max_durability.  if it is 0, then we'll chance this.
-						if(in_hand.getDurability() < in_hand.getType().getMaxDurability()) // Checking for ample durability.  This deals with durability.
-						{
-							if(x == 0 && y == 0 && z == 0) continue; // block 0,0 is already broken.
-							// Making a new event for the block we are about the break.
-							BlockBreakEvent new_event = new BlockBreakEvent(target.getBlock(), event.getPlayer());
-							no_do_break.add(new_event); // making sure this doesn't run a second time.
-							Bukkit.getServer().getPluginManager().callEvent(new_event);
-							no_do_break.remove(new_event); // cleaning up the list.
-							if(new_event.isCancelled()) continue; // jump to test the new block.
-							
-							// If a random number between 1 and 100 is less than 100/unbreaking, then do durability.
-							if((rand.nextInt(100) + 1) < (100/unbreaking) && span != 2 && !player.getGameMode().equals(GameMode.CREATIVE))
-							{
-								in_hand.setDurability((short) (in_hand.getDurability() + 1)); //  durability setting.
-								player.updateInventory();
-							}
-							
-							target.getBlock().breakNaturally();
-
-						}
-						else return;
+						block_breaks.add(target);
 					}
 				}
 			}
 		}
+		for(int i = 0; i < block_breaks.size(); i++)
+		{
+			block_breaks.get(i).getBlock().breakNaturally();
+			if(!Helper.simulateItemDamage(player, player.getItemInHand(), dur_coeff)) break;
+		}
+		// End block looping.
 	}
 	
 	@EventHandler
