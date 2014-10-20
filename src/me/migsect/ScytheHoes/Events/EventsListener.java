@@ -120,26 +120,15 @@ public class EventsListener implements Listener
 		int span = this.getSpanCrops(in_hand.getType());
 		if(span == 0) return;
 		
+		double dur_coeff = this.getDurCoeff(Helper.getRawMaterial(player.getItemInHand().getType()));
+		
 		// break and stop of the tool is tool damaged.
 		Helper.simulateItemDamage(player, player.getItemInHand());
 		
 		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
-		Random rand = new Random(); //  for durability.
-		int unbreaking = 1;
-		if(in_hand.getItemMeta().hasEnchant(Enchantment.DURABILITY))
-		{
-			unbreaking = 1 + in_hand.getEnchantmentLevel(Enchantment.DURABILITY);
-		}
-		double dur_coeff = this.getDurCoeff(in_hand.getType());
 		
-		int dur_chance = (int) ((100/unbreaking) * dur_coeff);
-		// If a random number between 1 and 100 is less than dur_chance, then do durability.
-		if((rand.nextInt(100) + 1) < dur_chance&& !player.getGameMode().equals(GameMode.CREATIVE))
-		{
-			in_hand.setDurability((short) (in_hand.getDurability() + 1)); //  durability setting.
-			player.updateInventory();
-		}
-		
+		// Beging block looping
+		List<BlockState> block_breaks = new ArrayList<BlockState>();
 		for(int x = -span; x <= span; x++)
 		{
 			for(int z = -span; z <= span; z++)
@@ -148,10 +137,16 @@ public class EventsListener implements Listener
 				if(target.getType().equals(crop_type) && target.getData().toItemStack().getDurability() == 7) // only breaking the blocks of sufficient level.
 				{
 					if(x == 0 && z == 0) continue; // block 0,0 is already broken.
-					Helper.simulateBlockBreak(target, player, no_do_break, damage_prob);
+					block_breaks.add(target);
+					Helper.simulateBlockBreak(target.getBlock(), player, no_do_break, dur_coeff); // we're going to need to do the seed thing here as well...
 				}
 			}
 		}
+		for(int i = 0; i < block_breaks.size(); i++)
+		{
+			Helper.simulateBlockBreak(block_breaks.get(i).getBlock(), player, no_do_break, dur_coeff);
+		}
+		// End block looping.
 	}
 	
 	@EventHandler

@@ -211,6 +211,9 @@ public class Helper
 	{
 		ItemStack tool = player.getItemInHand();
 		BlockBreakEvent new_event = new BlockBreakEvent(block, player);
+
+		if(tool.getType().equals(Material.AIR)) return false;
+		if(damage_prob >= 0) simulateItemDamage(player, tool, damage_prob);
 		
 		event_tracker.add(new_event); // making sure this doesn't run a second time.
 		Bukkit.getServer().getPluginManager().callEvent(new_event);
@@ -218,7 +221,6 @@ public class Helper
 		
 		if(new_event.isCancelled()) return false; // jump to test the new block.
 		block.breakNaturally(tool);
-		if(damage_prob > 0) simulateItemDamage(player, tool, damage_prob);
 		return true;
 	}
 	// this one doesn't do the event_tracker
@@ -261,7 +263,7 @@ public class Helper
 	//   returns true if the tool is broken.
 	private static boolean testBreak(Player player, ItemStack item)
 	{
-		if(item.getDurability() < item.getType().getMaxDurability()) return false;
+		if(item.getDurability() <= item.getType().getMaxDurability()) return false;
 		item.setAmount(0);
 		PlayerItemBreakEvent event = new PlayerItemBreakEvent(player, item);
 		Bukkit.getServer().getPluginManager().callEvent(event);
