@@ -121,11 +121,7 @@ public class EventsListener implements Listener
 		if(span == 0) return;
 		
 		// break and stop of the tool is tool damaged.
-		if(!(in_hand.getDurability() < in_hand.getType().getMaxDurability()))
-		{
-			player.setItemInHand(null); // will break the tool;
-			return;
-		}
+		Helper.simulateItemDamage(player, player.getItemInHand());
 		
 		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
 		Random rand = new Random(); //  for durability.
@@ -151,31 +147,8 @@ public class EventsListener implements Listener
 				BlockState target = event.getBlock().getRelative(x, 0, z).getState();
 				if(target.getType().equals(crop_type) && target.getData().toItemStack().getDurability() == 7) // only breaking the blocks of sufficient level.
 				{
-					// Breaking the block.
-					// I don't know if durability starts at 0 or max_durability.  if it is 0, then we'll chance this.
-					// player.sendMessage(".getDurability(): " + in_hand.getDurability()); 
-					if(in_hand.getDurability() < in_hand.getType().getMaxDurability()) // Checking for ample durability.  This deals with durability.
-					{
-						if(x == 0 && z == 0) continue; // block 0,0 is already broken.
-						// Making a new event for the block we are about the break.
-						BlockBreakEvent new_event = new BlockBreakEvent(target.getBlock(), event.getPlayer());
-						no_do_break.add(new_event); // making sure this doesn't run a second time.
-						Bukkit.getServer().getPluginManager().callEvent(new_event);
-						no_do_break.remove(new_event); // cleaning up the list.
-						if(new_event.isCancelled()) continue; // jump to test the new block.
-						
-						// Durability per.
-						if((rand.nextInt(100) + 1) < (100/unbreaking) && span != 2 && !player.getGameMode().equals(GameMode.CREATIVE))
-						{
-							in_hand.setDurability((short) (in_hand.getDurability() + 1)); //  durability setting.
-							player.updateInventory();
-						}
-						
-						target.getBlock().breakNaturally();
-						
-						
-					}
-					else return;
+					if(x == 0 && z == 0) continue; // block 0,0 is already broken.
+					Helper.simulateBlockBreak(target, player, no_do_break, damage_prob);
 				}
 			}
 		}
