@@ -259,7 +259,6 @@ public class Helper
 	{
 		return simulateItemDamage(player, item, 1);
 	}
-	
 	// will break the tool if it is at durability 0;
 	//   returns true if the tool is broken.
 	private static boolean testBreak(Player player, ItemStack item)
