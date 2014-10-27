@@ -122,10 +122,32 @@ public class EventsListener implements Listener
 		
 		double dur_coeff = this.getDurCoeff(Helper.getRawMaterial(player.getItemInHand().getType()));
 		
-		// break and stop of the tool is tool damaged.
+		
 		Helper.simulateItemDamage(player, player.getItemInHand());
 		
 		// Start the block breaking:  This will do an area sweep and not a connected branch.  Sycthes don't work the other way.
+		
+		
+		List<BlockState> to_break = new ArrayList<BlockState>();
+		List<BlockState> to_check = new ArrayList<BlockState>();
+		List<BlockState> new_adds = new ArrayList<BlockState>();
+		to_check.add(broken_block);
+		for(int i = 0 ; i < span; i++)
+		{
+			for(int j = 0 ; j < to_check.size(); i++)
+			{
+				BlockState target_block = to_check.get(i);
+				for(int x = -1; x <= 1; x++)
+				{
+					for(int z = -1; z <= 1; z++)
+					{
+						BlockState new_state = target_block.getBlock().getRelative(x, 0, z).getState();
+						new_adds.add(new_state);
+					}
+				}
+			}
+			if()
+		}
 		
 		// Beging block looping
 		List<BlockState> block_breaks = new ArrayList<BlockState>();
